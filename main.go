@@ -5,7 +5,8 @@ import (
 )
 
 func main() {
-	fileData := formatter.ReaderCSV("/Users/egororlov/Desktop/get_rating_card/users.csv")
+	var path string
+	fileData := formatter.ReaderCSV(path)
 	newFileCSV := formatter.Getter(fileData)
 	formatter.Writer(newFileCSV)
 }
