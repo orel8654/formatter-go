@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/gocarina/gocsv"
 )
@@ -70,11 +69,10 @@ func Getter(data []FileCSV) []FileCSV {
 	worker := make(chan FileCSV, len(data))
 	result := make(chan FileCSV, len(data))
 
-	mt := sync.Mutex{}
 	newFileCSV := []FileCSV{}
 
-	for w := 1; w <= Maxi; w++ {
-		go NewFetch(w, worker, result)
+	for i := 1; i <= Maxi; i++ {
+		go NewFetch(i, worker, result)
 	}
 
 	for _, val := range data {
@@ -83,12 +81,10 @@ func Getter(data []FileCSV) []FileCSV {
 	}
 	close(worker)
 
-	for i := 1; i <= len(data); i++ {
-		mt.Lock()
+	for i := 0; i < len(data); i++ {
 		newFileCSV = append(newFileCSV, <-result)
 		count++
 		fmt.Printf("%d / %d\n", count, len(data))
-		mt.Unlock()
 	}
 	return newFileCSV
 }
