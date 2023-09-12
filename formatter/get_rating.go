@@ -3,7 +3,6 @@ package formatter
 //Добавление
 //error wrap
 //multierr
-//time.Time при чтении
 
 import (
 	"encoding/csv"
@@ -11,6 +10,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
+	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/gocarina/gocsv"
 )
@@ -100,7 +103,7 @@ func Getter(data []FileCSV) []FileCSV {
 func ReaderCSV(path string) ([]FileCSV, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Open CSV")
 	}
 	defer f.Close()
 
@@ -108,7 +111,7 @@ func ReaderCSV(path string) ([]FileCSV, error) {
 	csvReader.Comma = ';'
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Read CSV")
 	}
 
 	result := make([]FileCSV, 0, len(records)-1)
@@ -116,10 +119,21 @@ func ReaderCSV(path string) ([]FileCSV, error) {
 		if i == 0 || len(line) == 0 {
 			continue
 		}
+		layout := "2006.01.02"
+		DateTimeLastLogin, err := time.Parse(layout, strings.Split(line[ColLastLogin], " ")[0])
+		if err != nil {
+			//error
+			return nil, errors.Wrap(err, "Read CSV")
+		}
+		DateTimeDateJoined, err := time.Parse(layout, strings.Split(line[ColDateJoined], " ")[0])
+		if err != nil {
+			//error
+			return nil, errors.Wrap(err, "Read CSV")
+		}
 		rec := FileCSV{
 			ID:         line[ColID],
-			LastLogin:  line[ColLastLogin],
-			DateJoined: line[ColDateJoined],
+			LastLogin:  DateTimeLastLogin.Format("2017-Jan-02"),
+			DateJoined: DateTimeDateJoined.Format("2017-Jan-02"),
 			Username:   line[ColUsername],
 			FirstName:  line[ColFirstName],
 			Phone:      line[ColPhone],
@@ -134,12 +148,12 @@ func ReaderCSV(path string) ([]FileCSV, error) {
 func Writer(data []FileCSV) error {
 	file, err := os.Create("newResult.csv")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Create CSV")
 	}
 	defer file.Close()
 
 	if err := gocsv.MarshalFile(&data, file); err != nil {
-		return err
+		return errors.Wrap(err, "Marshal CSV")
 	}
 	return nil
 }

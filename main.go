@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	var path string
+	var path string = "/Users/egororlov/Desktop/get_rating_card/users.csv"
 	fileData, err := formatter.ReaderCSV(path)
 	if err != nil {
 		fmt.Println(err.Error())
